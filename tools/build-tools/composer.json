@@ -1,0 +1,9 @@
+{
+    "require": {
+        "humbug/php-scoper": "0.18.19",
+        "jetbrains/phpstorm-stubs": "dev-master"
+    },
+    "config": {
+        "allow-plugins": false
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "name": "matthiasreinholz/packing-lists-for-woocommerce-pdf-runtime",
+    "description": "Isolated PDF runtime generated from the plugin composer.lock",
+    "license": "GPL-2.0-or-later",
+    "autoload": { "classmap": ["vendor/dompdf", "vendor/masterminds", "vendor/sabberworm"] },
+    "config": { "classmap-authoritative": true, "allow-plugins": false }
+}

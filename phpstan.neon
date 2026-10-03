@@ -1,0 +1,13 @@
+parameters:
+  phpVersion: 80100
+  treatPhpDocTypesAsCertain: false
+  excludePaths:
+    analyse:
+      - lib
+      - tools
+      - scoper-config.php
+  scanDirectories:
+    - lib/vendor
+  scanFiles:
+    - tools/analysis/vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+    - tools/analysis/vendor/php-stubs/woocommerce-stubs/woocommerce-packages-stubs.php

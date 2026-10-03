@@ -1,0 +1,142 @@
+name: Plugin tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plugin-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  behavior-and-pdf:
+    name: Behavior and PDF (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.4']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, mbstring
+          tools: composer
+      - name: Install locked PDF test dependencies
+        run: composer install --working-dir=tools/pdf-tests --no-interaction --prefer-dist --no-plugins --no-scripts
+      - name: Verify behavior and complete PDF text
+        run: |
+          set -euo pipefail
+          php tests/behavior.php
+          php tests/pdf.php
+
+  package:
+    name: Release package contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.1'
+          extensions: dom, mbstring
+          tools: composer
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Build and verify exact package contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_result="$(mktemp)"
+          trap 'rm -f "$package_result"' EXIT
+          source .wp-plugin-base/scripts/lib/package_generation.sh
+          WP_PLUGIN_BASE_PACKAGE_RESULT_FILE="$package_result" bash .wp-plugin-base/scripts/ci/build_zip.sh
+          wp_plugin_base_capture_package "$package_result"
+          php -r 'require "tools/check-package.php"; packing_lists_for_woocommerce_check_package($argv[1], false);' "$WP_PLUGIN_BASE_PACKAGE_DIR"
+
+  woocommerce:
+    name: WooCommerce legacy and HPOS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Run isolated WooCommerce regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          source .wp-plugin-base/scripts/lib/wordpress_tooling.sh
+          packing_tools="$(mktemp -d)"
+          packing_env="$(mktemp -d)"
+          packing_config="$(mktemp)"
+          packing_cache="$(mktemp -d)"
+          packing_buildx="$(mktemp -d)"
+          packing_started=false
+          cleanup() {
+            wp_plugin_base_cleanup_temporary_wordpress_env \
+              "$packing_tools" "$packing_env" "$packing_config" \
+              "$packing_cache" "$packing_buildx" "$packing_started"
+          }
+          trap cleanup EXIT
+          export WP_ENV_HOME="$packing_env"
+          export NPM_CONFIG_CACHE="$packing_cache"
+          export BUILDX_CONFIG="$packing_buildx"
+          wp_plugin_base_install_wordpress_env "$packing_tools"
+          python3 - "$PWD" "$packing_config" <<'PY'
+          import json
+          import sys
+          config = {
+              "core": "https://downloads.wordpress.org/release/wordpress-7.1.zip",
+              "phpVersion": "8.1",
+              "plugins": ["https://downloads.wordpress.org/plugin/woocommerce.11.1.2.zip"],
+              "mappings": {"wp-content/plugins/packing-lists-for-woocommerce": sys.argv[1]},
+              "config": {"WP_HOME": "http://packing.test", "WP_SITEURL": "http://packing.test"},
+              "testsEnvironment": False,
+              "port": 8888,
+          }
+          with open(sys.argv[2], "w", encoding="utf-8") as handle:
+              json.dump(config, handle)
+          PY
+          packing_started=true
+          wp_plugin_base_wordpress_env_start_with_retry "$packing_tools" --config="$packing_config"
+          packing_wp() {
+            wp_plugin_base_wordpress_env "$packing_tools" run cli --config="$packing_config" -- wp --url=http://packing.test "$@"
+          }
+          # wp-env appends its HTTP port; the destructive fixture requires the exact test-only host.
+          packing_wp config set WP_HOME http://packing.test
+          packing_wp config set WP_SITEURL http://packing.test
+          packing_wp option update home http://packing.test
+          packing_wp option update siteurl http://packing.test
+          packing_wp plugin activate woocommerce packing-lists-for-woocommerce
+          packing_wp option update timezone_string Europe/Zurich
+          for packing_storage in no yes; do
+            packing_wp option update woocommerce_custom_orders_table_enabled "$packing_storage"
+            packing_wp eval-file /var/www/html/wp-content/plugins/packing-lists-for-woocommerce/tests/woocommerce-integration.php
+          done

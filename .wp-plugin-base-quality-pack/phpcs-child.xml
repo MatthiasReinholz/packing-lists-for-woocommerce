@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<ruleset name="Packing Lists runtime compatibility">
+  <description>Distributed plugin code supports PHP 8.1 and WordPress 6.5.</description>
+  <config name="testVersion" value="8.1-"/>
+  <config name="minimum_supported_wp_version" value="6.5"/>
+</ruleset>
