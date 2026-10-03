@@ -5,7 +5,7 @@ Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
 Requires Plugins: woocommerce
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,10 @@ The site's WordPress timezone, including daylight-saving transitions.
 No. PDF rendering happens locally with bundled, isolated Dompdf dependencies.
 
 == Changelog ==
+
+= 0.3.1 =
+* Update - Initialize Packing Lists for WooCommerce.
+
 
 = 0.3.0 =
 * Public release with a consistent Packing Lists for WooCommerce identity.

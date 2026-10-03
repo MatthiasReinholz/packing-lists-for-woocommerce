@@ -3,7 +3,7 @@
  * Plugin Name: Packing Lists for WooCommerce
  * Plugin URI: https://github.com/MatthiasReinholz/packing-lists-for-woocommerce
  * Description: Email PDF packing lists for processing orders or orders completed today in WooCommerce.
- * Version: 0.3.0
+ * Version: 0.3.1
  * Author: Matthias Reinholz
  * Requires at least: 6.5
  * Requires PHP: 8.1
@@ -23,7 +23,7 @@ if ( version_compare( PHP_VERSION, '8.1', '<' ) ) {
 	return;
 }
 
-define( 'PACKING_LISTS_FOR_WOOCOMMERCE_VERSION', '0.3.0' );
+define( 'PACKING_LISTS_FOR_WOOCOMMERCE_VERSION', '0.3.1' );
 define( 'PACKING_LISTS_FOR_WOOCOMMERCE_FILE', __FILE__ );
 
 foreach ( array( 'orders', 'document', 'mailer' ) as $packing_lists_for_woocommerce_service ) {
