@@ -16,7 +16,7 @@ php tests/behavior.php
 php tests/pdf.php
 ```
 
-There are 53 behavioral assertions and 37 real PDF assertions.
+There are 54 behavioral assertions and 37 real PDF assertions.
 Coverage includes store-local completion boundaries and DST, bounded queries,
 refunds, capabilities, nonces, recipient validation, locking, Unicode, a 121-item
 order, a description spanning pages in both aggregate and detail sections, and

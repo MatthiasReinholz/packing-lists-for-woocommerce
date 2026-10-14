@@ -27,6 +27,11 @@ names; those labels are not an immutable historical snapshot. Recorded quantity 
 fully refunded items are omitted and fractional quantities are preserved. An
 amount-only refund does not identify returned quantities and is not subtracted.
 
+Aggregated rows group lines by the sold item and its description: by variation
+ID for variable products (so a variation moved to another parent product keeps
+one row for orders placed before and after the move), otherwise by product ID.
+Different metadata (for example another recorded size label) stays a separate row.
+
 ## Delivery and data handling
 
 - The recipient is stored in the per-site `packing_lists_for_woocommerce_recipient_email`
