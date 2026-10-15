@@ -34,12 +34,12 @@ class WP_Error {
 	public function get_error_code() { return $this->code; }
 }
 class WC_Order_Item_Product {
-	public function __construct( public int $id, public string $name, public float $quantity, public array $metadata = array() ) {}
+	public function __construct( public int $id, public string $name, public float $quantity, public array $metadata = array(), public int $product_id = 10, public int $variation_id = 11 ) {}
 	public function get_id() { return $this->id; }
 	public function get_name() { return $this->name; }
 	public function get_quantity() { return $this->quantity; }
-	public function get_product_id() { return 10; }
-	public function get_variation_id() { return 11; }
+	public function get_product_id() { return $this->product_id; }
+	public function get_variation_id() { return $this->variation_id; }
 	public function get_formatted_meta_data( $hide, $include ) { return $this->metadata; }
 }
 class WC_Order {

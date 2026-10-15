@@ -54,6 +54,16 @@ check( ! str_contains( $html, 'Fully refunded product' ), 'Fully refunded items 
 check( ! str_contains( $html, '<script>' ) && ! str_contains( $html, '<img' ) && str_contains( $html, '&lt;script&gt;' ), 'Customer, product and order text is escaped' );
 check( str_contains( $html, 'Size: Original XL' ), 'Recorded line metadata is included through WooCommerce formatting' );
 check( str_contains( $html, 'Completed today' ), 'Document names selected orders' );
+$size = array( (object) array( 'display_key' => 'Size', 'display_value' => 'Large' ) );
+$moved = array(
+	new WC_Order( 2, array( new WC_Order_Item_Product( 21, 'Bracelet Example - Large', 1, $size, 10, 11 ) ) ),
+	new WC_Order( 3, array( new WC_Order_Item_Product( 31, 'Bracelet Example - Large', 2, $size, 20, 11 ) ) ),
+	new WC_Order( 4, array( new WC_Order_Item_Product( 41, 'Bracelet Example - Large', 4, $size, 20, 12 ) ) ),
+	new WC_Order( 5, array( new WC_Order_Item_Product( 51, 'Plain item', 1, array(), 30, 0 ), new WC_Order_Item_Product( 52, 'Plain item', 5, array(), 31, 0 ) ) ),
+);
+$aggregate = new ReflectionMethod( Packing_Lists_For_WooCommerce_Document::class, 'aggregate_items' );
+$rows = array_map( static fn( array $row ): string => $row['qty'] . ' × ' . $row['name'], $aggregate->invoke( null, $moved ) );
+check( array( '3 × Bracelet Example - Large (Size: Large)', '4 × Bracelet Example - Large (Size: Large)', '1 × Plain item', '5 × Plain item' ) === $rows, 'Lines of one variation merge across parent products; other variations and products stay separate' );
 $GLOBALS['test_options'] = array();
 $result = Packing_Lists_For_WooCommerce_Mailer::send( 'processing' );
 check( is_wp_error( $result ) && 'missing_recipient' === $result->get_error_code(), 'Missing recipient prevents sending' );

@@ -163,6 +163,12 @@ final class Packing_Lists_For_WooCommerce_Document {
 	/**
 	 * Sum net quantities while retaining distinctions in item metadata.
 	 *
+	 * Lines are grouped by the sold item, not by the product record that
+	 * happened to be their parent when the order was placed: a variation
+	 * keeps its ID when it is moved to another parent product, so lines of
+	 * the same variation and description form one row before and after such
+	 * a move. Products without a variation are grouped by product ID.
+	 *
 	 * @param WC_Order[] $orders Order records.
 	 * @return array<int,array{name:string,qty:float}> Sorted item totals.
 	 */
@@ -184,9 +190,8 @@ final class Packing_Lists_For_WooCommerce_Document {
 					continue;
 				}
 				$item_name    = self::format_order_item_name( $item );
-				$product_id   = (int) $item->get_product_id();
 				$variation_id = (int) $item->get_variation_id();
-				$key          = $product_id . ':' . $variation_id . ':' . $item_name;
+				$key          = ( $variation_id > 0 ? 'variation:' . $variation_id : 'product:' . (int) $item->get_product_id() ) . ':' . $item_name;
 
 				if ( ! isset( $totals[ $key ] ) ) {
 					$totals[ $key ] = array(
