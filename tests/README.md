@@ -56,7 +56,7 @@ pinned WooCommerce fixture and
 analysis stub version together when testing a new supported release.
 
 Use the workflow's **Run workflow** action to reproduce this environment. Its
-shell step can also run locally from the repository root with Node 22, Python 3,
+shell step can also run locally from the repository root with Node 24, Python 3,
 and Docker installed; every temporary path is created by the step and its cleanup
 only targets that environment. No prebuilt local image or sibling repository is
 required. The workflow starts WordPress, activates the plugins, sets the test URL
